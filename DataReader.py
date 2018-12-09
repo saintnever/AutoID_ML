@@ -1,29 +1,39 @@
 #!/usr/bin/python3
 import pymongo as mongo
-from datetime import datetime
+import time
 
 class DataReader:
     def __init__(self):
         self.client = mongo.MongoClient("mongodb://101.6.114.5:27017")
         self.database = self.client["AutoID"] 
         self.tagData = self.database["TagData"]
-    def GetData(self, date, startTime, endTime, count = 100):
-        myQuery = {"Time": {"$regex": "^" + date}}
-        found = self.tagData.find(myQuery);
+        self.timeFormat = "%Y-%m-%dT%H:%M:%S"
+        self.timeDelta = 28800 #Beijing timezone is 8 hours faster than UTC
+    def GetData(self,startTime, endTime, count = 100):
+        start = int(time.mktime(time.strptime(startTime, self.timeFormat))) - self.timeDelta
+        end = int(time.mktime(time.strptime(endTime, self.timeFormat))) - self.timeDelta
+        found = self.tagData.find();
         result = []
         cnt = 0
         for item in found:
-            time = int(item["Time"][11:13])
-            if(time <= endTime and time >= startTime):
+            timeStr = item["Time"][0:19]
+            timeStamp = int(time.mktime(time.strptime(timeStr, self.timeFormat)))
+            if(timeStamp >= start and timeStamp <= end):
+                # Suppose the time is strictly increasing
                 result.append(item)
                 cnt = cnt + 1
-            if(cnt > count):
+            elif(timeStamp > end):
+                break
+
+            if(cnt >= count):
                 break
         return result
 
 
 if __name__ == '__main__':
     reader = DataReader()
-    result = reader.GetData("2018-12-06", 17, 17, 50)
+    startTime = "2018-12-05T13:00:00"
+    endTime = "2018-12-08T17:00:00"
+    result = reader.GetData(startTime, endTime, 10)
     for item in result:
         print(item)
