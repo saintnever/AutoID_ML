@@ -22,7 +22,15 @@ class DataReader:
             tagList = self.tagMap[key]
             for tag in tagList:
                 self.allTag.append(tag) 
-    def GetData(self, startTime, endTime, count=None, epcList=None):
+    def GetData(self, startTime, endTime, count=None, objName=None):
+        if objName is None:
+            epcList = None
+        else:
+            if objName not in self.tagMap.keys():
+                print("Invalid object name. Please see README or TagInfo.json")
+                return []
+            else:
+                epcList = self.tagMap[objName]
         result = []
         if epcList is None:
             epcList = self.allTag
@@ -51,14 +59,10 @@ if __name__ == '__main__':
     parser.add_argument("--start", dest = "start", help = "Start time. Format in  yyyy/MM/dd/HH/mm/ss", default = "2018/12/12/10/40/00")
     parser.add_argument("--end", dest = "end", help = "End time. Format in  yyyy/MM/dd/HH/mm/ss", default = "2018/12/12/11/40/00")
     args = parser.parse_args()
-    if args.obj is None:
-        tagList = None
-    else:
-        tagList = reader.tagMap[args.obj]
     startOpt = re.split('/', args.start) 
     startTime = reader.PKTime(int(startOpt[0]),int(startOpt[1]),int(startOpt[2]),int(startOpt[3]),int(startOpt[4]),int(startOpt[5]))
     endOpt = re.split('/', args.end) 
     endTime = reader.PKTime(int(endOpt[0]),int(endOpt[1]),int(endOpt[2]),int(endOpt[3]),int(endOpt[4]),int(endOpt[5]))
-    result = reader.GetData(startTime, endTime, args.num, tagList)
+    result = reader.GetData(startTime, endTime, args.num, args.obj)
     for item in result:
         print(item)
