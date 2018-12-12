@@ -3,43 +3,62 @@ import pymongo as mongo
 import datetime as datetime
 import argparse
 import re
+import json
 
+configFile = "TagInfo.json"
 
 class DataReader:
     def __init__(self):
         self.client = mongo.MongoClient("mongodb://101.6.114.5:27017")
         self.database = self.client["AutoID"]
-        #self.database = self.client["test"]
+        # self.database = self.client["test"]
         self.tagData = self.database["TagData"]
         self.timeFormat = "%Y-%m-%dT%H:%M:%S"
         self.timeDelta = 8  # Beijing timezone is 8 hours faster than UTC
-    def GetData(self, startTime, endTime, count=None, epc=None):
-        if epc is None:
-            found = self.tagData.find({'Time': {'$lt': endTime, '$gte': startTime}})
-        else:
-            found = self.tagData.find({
-                'Time': {'$lt': endTime, '$gte': startTime},
-                'EPC': epc
-            })
+        with open (configFile, "r") as f:
+            self.tagMap = json.load(f)
+        self.allTag = []
+        for key in self.tagMap.keys():
+            tagList = self.tagMap[key]
+            for tag in tagList:
+                self.allTag.append(tag) 
+    def GetData(self, startTime, endTime, count=None, epcList=None):
+        result = []
+        if epcList is None:
+            epcList = self.allTag
+        for epc in epcList:
+            if epc is None:
+                found = self.tagData.find({'Time': {'$lt': endTime, '$gte': startTime}})
+            else:
+                found = self.tagData.find({
+                    'Time': {'$lt': endTime, '$gte': startTime},
+                    'EPC': epc
+                })
+            for item in found:
+                result.append(item)
         if count is None:
-            return found
+            return result
         else:
-            return found[:count] if found.count() > count else found
+            return result[:count] if result.count() > count else result
     def PKTime(self, year, month, day, hour, minute, sec):
         return datetime.datetime(year, month, day, hour - self.timeDelta, minute, sec)
     
 if __name__ == '__main__':
     reader = DataReader()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epc", dest = "epc", help = "The EPC of the tag you want to find. Ignore if you want all")
+    parser.add_argument("--obj", dest = "obj", help = "The object you want to find, automatically mapping to epc colleciton. Ignore if you want all")
     parser.add_argument("--num", dest = "num", help = "How many data you want to get?")
     parser.add_argument("--start", dest = "start", help = "Start time. Format in  yyyy/MM/dd/HH/mm/ss", default = "2018/12/12/10/40/00")
     parser.add_argument("--end", dest = "end", help = "End time. Format in  yyyy/MM/dd/HH/mm/ss", default = "2018/12/12/11/40/00")
     args = parser.parse_args()
+    if args.obj is None:
+        tagList = None
+    else:
+        tagList = reader.tagMap[args.obj]
     startOpt = re.split('/', args.start) 
     startTime = reader.PKTime(int(startOpt[0]),int(startOpt[1]),int(startOpt[2]),int(startOpt[3]),int(startOpt[4]),int(startOpt[5]))
     endOpt = re.split('/', args.end) 
     endTime = reader.PKTime(int(endOpt[0]),int(endOpt[1]),int(endOpt[2]),int(endOpt[3]),int(endOpt[4]),int(endOpt[5]))
-    result = reader.GetData(startTime, endTime, args.num, args.epc)
+    result = reader.GetData(startTime, endTime, args.num, tagList)
     for item in result:
         print(item)

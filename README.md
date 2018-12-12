@@ -20,4 +20,20 @@ result = reader.GetData(startTime, endTime, None, epc) # Tag with id epc's all r
 result = reader.GetData(startTime, endTime) # All records from all tags in this interval
 ```
 #### Usage in terminal
-`python3 DataReader.py -h` will give your help. Remember to launch correct virtual environment first.
+`python3 DataReader.py -h` will give your help like below:
+``` bash
+--obj OBJ      The object you want to find, automatically mapping to epc
+               colleciton. Ignore if you want all
+--num NUM      How many data you want to get?
+--start START  Start time. Format in yyyy/MM/dd/HH/mm/ss
+--end END      End time. Format in yyyy/MM/dd/HH/mm/ss
+```
+OBJ means a collection of related tags. They are defined as the key in TagInfo.json. Include:
+- bottle
+- drawer
+- desk
+- bookshelf
+- lamp
+- drug
+- book
+- computer
