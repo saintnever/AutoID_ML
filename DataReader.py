@@ -26,30 +26,32 @@ class DataReader:
 
     def GetData(self, startTime, endTime, count=None, objName=None):
         if objName is None:
-            epcList = None
+            epcList = self.allTag
         else:
             if objName not in self.tagMap.keys():
                 print("Invalid object name. Please see README or TagInfo.json")
                 return []
             else:
                 epcList = self.tagMap[objName]
-        result = []
-        if epcList is None:
-            epcList = self.allTag
-        for epc in epcList:
-            if epc is None:
-                found = self.tagData.find({'Time': {'$lt': endTime, '$gte': startTime}})
-            else:
-                found = self.tagData.find({
-                    'Time': {'$lt': endTime, '$gte': startTime},
-                    'EPC': epc
-                })
-            for item in found:
-                result.append(item)
-        if count is None:
-            return result
-        else:
-            return result[:count] if len(result) > count else result
+        print(epcList)
+        result = self.GetData_epc(startTime, endTime, None) 
+        return result
+        # if epcList is None:
+        #     epcList = self.allTag
+        # for epc in epcList:
+        #     if epc is None:
+        #         found = self.tagData.find({'Time': {'$lt': endTime, '$gte': startTime}})
+        #     else:
+        #         found = self.tagData.find({
+        #             'Time': {'$lt': endTime, '$gte': startTime},
+        #             'EPC': epc
+        #         })
+        #     for item in found:
+        #         result.append(item)
+        # if count is None:
+        #     return result
+        # else:
+        #     return result[:count] if len(result) > count else result
 
     def GetData_epc(self, startTime, endTime, count=None, epclist=None):
         if epclist is None:
@@ -64,7 +66,7 @@ class DataReader:
         if count is None:
             return results
         else:
-            return results[:count] if len(results) > count else results
+            return results[:int(count)] if len(results) > int(count) else results
 
     def PKTime(self, year, month, day, hour, minute, sec):
         return datetime.datetime(year, month, day, hour - self.timeDelta, minute, sec)
@@ -88,5 +90,8 @@ if __name__ == '__main__':
     endTime = reader.PKTime(int(endOpt[0]), int(endOpt[1]), int(endOpt[2]), int(endOpt[3]), int(endOpt[4]),
                             int(endOpt[5]))
     result = reader.GetData(startTime, endTime, args.num, args.obj)
-    for item in result:
-        print(item)
+    print(startTime)
+    print(endTime)
+    if result is not None:
+        for item in result:
+            print(item)
