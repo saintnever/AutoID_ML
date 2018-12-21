@@ -1,40 +1,9 @@
 # AutoID_ML
 The deep learning codes for AutoID project
 
-## Dependency
-### MongoDB
-The configure file on Windows server should set bindIP to 0.0.0.0 (listen to all IP) or specific network interface.
-Use `pip3 install pymongo` to install in the python virtual environment.
+## branch description
+A drawer is placed on a desk. The goal is to detect 1. the position of the drawer 2. the status of the drawer 
+States : 2 positions with 3 drawer status (close/small open/large open) = 6 states  
+Features: Only using data from ceiling Antenna (ANT2). Only using the data from the tags on the drawer. RSSI and PHASE averaged with win=2s and step =0.5s. 
+Results: 99.3% training accuracy with training set size=84128. 100% test accuracy with training set size=2630. 
 
-## Usage
-### DataReader
-> The user should give the startTime and endTime. Even though the lack of them would not result in Error. The result may not be expected, however.
-#### import as a module
-``` python
-reader = DataReader()
-startTime = reader.PKTime(2018, 10, 10, 22, 30, 00) #2018/10/10 22:30 0s
-endTime = reader.PKTime(2018, 12, 31, 23, 30, 30)
-epc = "E200001939070049131014D4"
-result = reader.GetData(startTime, endTime, 100, "computer") # First 100 records of tags related to object computer in this interval
-result = reader.GetData(startTime, endTime, 100) # 100 records from all tags in this interval
-result = reader.GetData(startTime, endTime, None, "computer") # All records of tags related to object computer in this interval
-result = reader.GetData(startTime, endTime) # All records from all tags in this interval
-```
-#### Usage in terminal
-`python3 DataReader.py -h` will give your help like below:
-``` bash
---obj OBJ      The object you want to find, automatically mapping to epc
-               colleciton. Ignore if you want all
---num NUM      How many data you want to get?
---start START  Start time. Format in yyyy/MM/dd/HH/mm/ss
---end END      End time. Format in yyyy/MM/dd/HH/mm/ss
-```
-OBJ means a collection of related tags. They are defined as the key in TagInfo.json. Include:
-- bottle
-- drawer
-- desk
-- bookshelf
-- lamp
-- drug
-- book
-- computer
