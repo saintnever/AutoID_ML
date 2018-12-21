@@ -18,3 +18,14 @@ phase_calibrate(input,output)
   --input INPUTFILE    inputfilename.For example, ./data/data_neg.csv
   --output OUTPUTFILE  outputfilename.
 ```
+
+### ifequal
+#### import function compare
+this function is used to compare the data after calibration with the origin data.
+#### Usage in terminal
+`python3 calibration.py -h` will give your help like below:
+``` bash
+-h, --help           show this help message and exit
+  --input INPUTFILE    inputfilename.For example, ./data/data_neg.csv
+  --output OUTPUTFILE  outputfilename.
+```
