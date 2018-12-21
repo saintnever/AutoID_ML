@@ -52,7 +52,7 @@ class Dataset(data.Dataset):
 num_epochs = 8
 num_classes = 6
 batch_size = 32
-learning_rate = 0.0001
+learning_rate = 0.001
 
 
 # Convolutional neural network (two convolutional layers)
@@ -69,24 +69,24 @@ class ConvNet(nn.Module):
             nn.Conv2d(16, 32, kernel_size=2, stride=1, padding=1),
             # nn.BatchNorm2d(32, affine=False),
             nn.ReLU())
-        self.layer3 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=2, stride=1, padding=1),
-            # nn.BatchNorm2d(32, affine=False),
-            nn.ReLU())
+        # self.layer3 = nn.Sequential(
+        #     nn.Conv2d(32, 64, kernel_size=2, stride=1, padding=1),
+        #     # nn.BatchNorm2d(32, affine=False),
+        #     nn.ReLU())
         # nn.MaxPool2d(kernel_size=2, stride=2))
         # self.fc1 = nn.Linear(1 * 256 * 32, num_classes)
-        self.fc1 = nn.Linear(7*7*64, 7*7*64)
-        self.fc2 = nn.Linear(7*7*64, num_classes)
+        # self.fc1 = nn.Linear(7*7*64, 7*7*64)
+        self.fc2 = nn.Linear(6*6*32, num_classes)
 
     def forward(self, x):
         out = self.layer1(x)
         # print(out.shape)
         out = self.layer2(out)
         # print(out.shape)
-        out = self.layer3(out)
+        # out = self.layer3(out)
         out = out.reshape(out.size(0), -1)
         # print(out.shape)
-        out = self.fc1(out)
+        # out = self.fc1(out)
         out = self.fc2(out)
         return out
 
