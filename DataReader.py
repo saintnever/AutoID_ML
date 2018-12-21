@@ -34,7 +34,7 @@ class DataReader:
             else:
                 epcList = self.tagMap[objName]
         print(epcList)
-        result = self.GetData_epc(startTime, endTime, None) 
+        result = self.GetData_epc(startTime, endTime, count, epcList) 
         return result
         # if epcList is None:
         #     epcList = self.allTag
@@ -90,8 +90,6 @@ if __name__ == '__main__':
     endTime = reader.PKTime(int(endOpt[0]), int(endOpt[1]), int(endOpt[2]), int(endOpt[3]), int(endOpt[4]),
                             int(endOpt[5]))
     result = reader.GetData(startTime, endTime, args.num, args.obj)
-    print(startTime)
-    print(endTime)
     if result is not None:
         for item in result:
             print(item)
