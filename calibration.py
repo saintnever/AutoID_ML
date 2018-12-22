@@ -90,20 +90,24 @@ def phase_calibrate(inputfile,outputfile):
                 if length == 1:
                     fr = average_array[0]
                 else :
-                    base = 0
-                    average_array_after=[]
-                    average_array_after.append(average_array[0])
-                    for tmp_i in range(1,length):
-                        if average_array[tmp_i] - average_array[tmp_i-1] > 0:
-                            base += 180
-                            average_array_after.append(average_array[tmp_i]-base)
-                        else:
-                            average_array_after.append(average_array[tmp_i]-base)
-                    b0,b1=fit(frequency_array,average_array_after)
-                    fr = predit(902750,b0,b1)
-                    while fr > 180:
-                        fr -= 180
-                print(frelist)
+                    if 902750 in frequency_array:
+                        fr = average_array[0]
+                        print("we have 902750!")
+                    else:
+                        base = 0
+                        average_array_after=[]
+                        average_array_after.append(average_array[0])
+                        for tmp_i in range(1,length):
+                            if average_array[tmp_i] - average_array[tmp_i-1] > 0:
+                                base += 180
+                                average_array_after.append(average_array[tmp_i]-base)
+                            else:
+                                average_array_after.append(average_array[tmp_i]-base)
+                        b0,b1=fit(frequency_array,average_array_after)
+                        fr = predit(902750,b0,b1)
+                        while fr > 180:
+                            fr -= 180
+                print(frequency_array)
                 # phi_r = average_dic[str(minfre)]
                 phi_r = fr
                 with open(file) as csvfile:
