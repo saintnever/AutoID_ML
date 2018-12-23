@@ -10,6 +10,12 @@ class AugController:
         int_gs = np.array(gs, 'int32')
         new = orig + int_gs
         return new.tolist()
+    def Shift(self, data, offset):
+        orig = np.array(data, 'int32')
+        shift = np.linspace(offset, offset, len(data))
+        n_shift = np.array(shift, 'int32')
+        new = orig + n_shift
+        return new.tolist() 
 
 if __name__ == '__main__':
     reader = DataReader()
@@ -21,11 +27,13 @@ if __name__ == '__main__':
             # print(line['RSSI'] + '/' + line['Phase'])
             origRSSI.append(line['RSSI'])
             origPhase.append(line['Phase'])
-    newRSSI = controller.Gaussian(origRSSI)
+    # newRSSI = controller.Gaussian(origRSSI)
+    newRSSI = controller.Shift(origRSSI, -1)
     newPhase = controller.Gaussian(origPhase)
     l = len(origRSSI)
     cnt = 0
     while cnt < l:
         print(str(origRSSI[cnt]) + '/' + str(newRSSI[cnt]))
+        # print(str(origPhase[cnt]) + '/' + str(newPhase[cnt]))
         cnt = cnt + 1
     # print(newPhase)
