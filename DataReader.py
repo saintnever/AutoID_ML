@@ -68,6 +68,29 @@ class DataReader:
         else:
             return results[:int(count)] if len(results) > int(count) else results
 
+    def GetDataFromCSV(self, fileName, objName):
+        path = './data/data_augmentation/'
+        results = []
+        tagList = self.tagMap[objName]
+        with open(path + fileName, 'r') as f:
+            for line in f.readlines():
+                item = re.split(',', line)
+                if item[4] in tagList:
+                    result = {} 
+                    result['Ant'] = item[1]
+                    result['CRC'] = item[2]
+                    result['Count'] = item[3]
+                    result['EPC'] = item[4]
+                    result['Freq'] = item[5]
+                    result['PC'] = item[6]
+                    result['Phase'] = item[7]
+                    result['Protocol'] = item[8]
+                    result['RSSI'] = item[9]
+                    result['Time'] = item[10]
+                    result['_id'] = item[11]
+                    results.append(result)
+        return results
+
     def PKTime(self, year, month, day, hour, minute, sec):
         return datetime.datetime(year, month, day, hour - self.timeDelta, minute, sec)
 
