@@ -1,0 +1,1 @@
+data_6trials_3people.csv sequence: 打开台灯-打开抽屉-打开药瓶-拿起杯子-旋紧药瓶-关闭抽屉-打开电脑（1min）-打开书（1min）-放回书-关闭电脑-关灯
