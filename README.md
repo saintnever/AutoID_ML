@@ -6,9 +6,9 @@ A drawer is placed on a desk. The goal is to detect 1. the position of the drawe
 
 States : 2 positions with 3 drawer status (close/small open/large open) = 6 states  
 
-Features: Only using data from ceiling Antenna (ANT2). Only using the data from the tags on the drawer (). RSSI and PHASE averaged with win=2s and step =0.5s. (full_set_win2_step05.pkl, drawer_utils.py)
+Features: Only using data from ceiling Antenna (ANT2). Only using the data from the tags on the drawer (8 tags). RSSI and PHASE averaged with win=2s and step =0.5s. (full_set_win2_step05.pkl, drawer_utils.py)
 
-CNN structure: 3x2Dconv + 2xFC  (drawer_learning.py)
+CNN structure: 2x2Dconv + 1xFC  (drawer_learning.py)
 
-Results: 99.3% training accuracy with training set size=84128. 100% test accuracy with training set size=2630. 
+Results: 99.3% training accuracy with training set size=84128. 100% test accuracy with test set size=2630. 
 
