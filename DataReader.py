@@ -4,9 +4,25 @@ import datetime as datetime
 import argparse
 import re
 import json
+import pickle
+import numpy as np
 
 configFile = "TagInfo.json"
 
+def LoadFromPickle(fileName = "full_set_win2_step05.pkl"):
+    # train/test/dev split
+    with open(fileName, "rb") as file:
+        data_dict = pickle.load(file)
+    xFrame = np.array(data_dict['feature'])
+    xFrame = np.squeeze(np.array(xFrame))
+    yFrame = np.array(data_dict['label'])
+    X = list()
+    y = list()
+    for i, item in enumerate(xFrame):
+        if ~np.isnan(np.sum(item)):
+            X.append([np.array(item).reshape(4, 4)])
+            y.append(yFrame[i])
+    return X, y
 
 class DataReader:
     def __init__(self):

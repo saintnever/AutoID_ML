@@ -12,6 +12,7 @@ import pickle
 from drawer_utils import *
 from sklearn import neighbors, svm
 from sklearn.model_selection import cross_val_score, train_test_split
+from DataReader import LoadFromPickle
 
 # Device configuration
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -91,6 +92,23 @@ class ConvNet(nn.Module):
         return out
 
 
+# Move to datareader
+# def LoadFromPickle(fileName = "full_set_win2_step05.pkl"):
+#     # train/test/dev split
+#     with open(fileName, "rb") as file:
+#         data_dict = pickle.load(file)
+#     xFrame = np.array(data_dict['feature'])
+#     xFrame = np.squeeze(np.array(xFrame))
+#     yFrame = np.array(data_dict['label'])
+#     X = list()
+#     y = list()
+#     for i, item in enumerate(xFrame):
+#         if ~np.isnan(np.sum(item)):
+#             X.append([np.array(item).reshape(4, 4)])
+#             y.append(yFrame[i])
+#     return x, y
+    
+
 try:
     # # load data
     # df_data = pd.read_pickle('df_data.pkl')
@@ -131,18 +149,7 @@ try:
     #     pickle.dump({'feature': xFrame, 'label': yFrame}, file)
 
     # train/test/dev split
-    with open("full_set_win2_step05.pkl", "rb") as file:
-        data_dict = pickle.load(file)
-    xFrame = np.array(data_dict['feature'])
-    xFrame = np.squeeze(np.array(xFrame))
-    yFrame = np.array(data_dict['label'])
-
-    X = list()
-    y = list()
-    for i, item in enumerate(xFrame):
-        if ~np.isnan(np.sum(item)):
-            X.append([np.array(item).reshape(4, 4)])
-            y.append(yFrame[i])
+    LoadFromPickle("full_set_win2_step05.pkl")
 
     # SVM classifier
     # xFrame_flatten = np.array(xFrame).reshape(len(xFrame), -1)
