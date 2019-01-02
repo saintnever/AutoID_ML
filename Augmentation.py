@@ -6,10 +6,11 @@ import numpy as np
 class AugController:
     def __init__(self):
         pass
-    def Gaussian(self, data, mv = 0, sig = 1):
-        orig = np.array(data, 'int32')
-        gs = np.random.normal(mv, sig, len(data)) 
-        int_gs = np.array(gs, 'int32')
+    def Gaussian(self, data, avg, sig = 1):
+        orig = np.array(data, 'float32')
+        shape = orig.shape
+        gs = np.random.normal(avg, sig, size = shape) 
+        int_gs = np.array(gs, 'float32')
         new = orig + int_gs
         return new.tolist()
     def Shift(self, data, offset):
@@ -27,9 +28,33 @@ class AugController:
 if __name__ == '__main__':
     reader = DataReader()
     x, y = LoadFromPickle()
-    print(x)
-    print('------------------')
-    print(y)
+    controller = AugController()
+
+    sum = dict()
+    cnt = dict()
+    for i in range(0, len(x)):
+        if y[i] not in sum.keys():
+            sum[y[i]] = np.array(x[i], 'float32')
+            cnt[y[i]] = 0
+        else:
+            sum[y[i]] = sum[y[i]] + np.array(x[i], 'float32')
+            cnt[y[i]] = cnt[y[i]] + 1
+
+    for i in range(0, 6):
+        sum[i] = sum[i]/cnt[i]
+        print("{}------------------".format(i))
+        print(sum[i])
+
+    for i in range(0, len(x)):
+        gs = controller.Gaussian(x[i], 0, 0.1)
+        print("------------------")
+        print(gs)
+    
+
+    # for item in x:
+    #     print(item)
+    # print(y)
+
     # origRSSI = []
     # origRSSI1 = []
     # origPhase = []
