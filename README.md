@@ -17,5 +17,5 @@ Draw heat map.
 @Output: a heatmap
 
 ###drawheatmap_sample
-a sample using function drawheatmap to draw a heatmap
+a sample using function drawheatmap to draw a heapmap
 
