@@ -2,13 +2,20 @@
 The deep learning codes for AutoID project
 
 ## branch description
-A drawer is placed on a desk. The goal is to detect 1. the position of the drawer 2. the status of the drawer 
+draw the heatmap using the 6_trial_sequence data
 
-States : 2 positions with 3 drawer status (close/small open/large open) = 6 states  
+###smoothing.py 
+Using data from Ant 1. Use data from tags on the table.  RSSI is averaged with win=2s and step =0.5s. No interpolation, fill nan with -100(RSSI)/0(Phase). 
+The processed data of each tag is stored in a pickle file.
 
-Features: Only using data from ceiling Antenna (ANT2). Only using the data from the tags on the drawer (8 tags). RSSI and PHASE averaged with win=2s and step =0.5s. (full_set_win2_step05.pkl, drawer_utils.py)
+###raise.py
+Using the smooth function to get data.
 
-CNN structure: 2x2Dconv + 1xFC  (drawer_learning.py)
+###plotheat.py
+Draw heat map.
+@Parameter: starttime endtime
+@Output: a heatmap
 
-Results: 99.3% training accuracy with training set size=84128. 100% test accuracy with test set size=2630. 
+###drawheatmap_sample
+a sample using function drawheatmap to draw a heatmap
 
