@@ -62,7 +62,7 @@ def drawheatmap(starttime,endtime):
             for j in range(0,6):
                 if not data[j][i] == "":
                     picklefilename = data[j][i]+'.pkl'
-                    pkl_file = open(picklefilename, 'rb')
+                    pkl_file = open("./data/"+picklefilename, 'rb')
                     print(data[j][i])
                     datadic[data[j][i]] = pickle.load(pkl_file)
                     length = len(datadic[data[j][i]])
