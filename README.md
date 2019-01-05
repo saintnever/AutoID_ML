@@ -16,6 +16,6 @@ Draw heat map.
 @Parameter: starttime endtime
 @Output: a heatmap
 
-### drawheatmap_sample
+### drawheatmap_sample.py
 a sample using function drawheatmap to draw a heatmap
 
