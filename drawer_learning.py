@@ -131,82 +131,84 @@ try:
     #     pickle.dump({'feature': xFrame, 'label': yFrame}, file)
 
     # train/test/dev split
-    with open("full_set_win2_step05.pkl", "rb") as file:
+    with open("testcup2.pkl", "rb") as file:
         data_dict = pickle.load(file)
     xFrame = np.array(data_dict['feature'])
     xFrame = np.squeeze(np.array(xFrame))
     yFrame = np.array(data_dict['label'])
 
-    X = list()
-    y = list()
-    for i, item in enumerate(xFrame):
-        if ~np.isnan(np.sum(item)):
-            X.append([np.array(item).reshape(4, 4)])
-            y.append(yFrame[i])
+    # X = list()
+    # y = list()
+    # for i, item in enumerate(xFrame):
+    #     if ~np.isnan(np.sum(item)):
+    #         X.append([np.array(item).reshape(4, 4)])
+    #         y.append(yFrame[i])
 
     # SVM classifier
-    # xFrame_flatten = np.array(xFrame).reshape(len(xFrame), -1)
-    # xFrame_flatten[np.isnan(xFrame_flatten)] = 0
+    xFrame_flatten = np.array(xFrame).reshape(len(xFrame), -1)
+    xFrame_flatten[np.isnan(xFrame_flatten)] = 0
     # X_train, X_test, y_train, y_test = train_test_split(xFrame_flatten, yFrame, test_size=0.4, random_state=0)
-    # clf = svm.SVC(kernel='rbf', gamma='scale', C=1).fit(X_train, y_train)
-    # print(clf.score(X_test, y_test))
+    # clf = svm.SVC(kernel='linear', gamma='scale', C=1).fit(X_train, y_train)
+    with open("svm.pkl", "rb") as file:
+        clf = pickle.load(file)
+    print(clf.score(xFrame_flatten, yFrame))
 
     # CNN
-    full_set = Dataset(range(len(y)), torch.tensor(X), torch.tensor(y))
-    train_size = int(0.8 * len(full_set))
-    # dev_size = int((len(full_set) - train_size) / 2)
-    test_size = len(full_set) - train_size
-    train_set, dev_set = torch.utils.data.random_split(full_set, [train_size, test_size])
+    # full_set = Dataset(range(len(y)), torch.tensor(X), torch.tensor(y))
+    # train_size = int(0.8 * len(full_set))
+    # # dev_size = int((len(full_set) - train_size) / 2)
+    # test_size = len(full_set) - train_size
+    # train_set, dev_set = torch.utils.data.random_split(full_set, [train_size, test_size])
 
-    # Data loader
-    train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=batch_size, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(dataset=dev_set, batch_size=batch_size, shuffle=False)
+    # # Data loader
+    # train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=batch_size, shuffle=True)
+    # test_loader = torch.utils.data.DataLoader(dataset=dev_set, batch_size=batch_size, shuffle=False)
 
-    model = ConvNet(num_classes).to(device)
+    # model = ConvNet(num_classes).to(device)
 
-    # Loss and optimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    # # Loss and optimizer
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Train the model
-    total_step = len(train_loader)
-    correct = 0
-    total = 0
-    for epoch in range(num_epochs):
-        for i, (features, labels) in enumerate(train_loader):
-            features = features.to(device, dtype=torch.float)
-            labels = labels.to(device)
-            # Forward pass
-            outputs = model(features)
-            loss = criterion(outputs, labels)
-            _, predicted = torch.max(outputs.data, dim=1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-            # Backward and optimize
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+    # # Train the model
+    # total_step = len(train_loader)
+    # correct = 0
+    # total = 0
+    # for epoch in range(num_epochs):
+    #     for i, (features, labels) in enumerate(train_loader):
+    #         features = features.to(device, dtype=torch.float)
+    #         labels = labels.to(device)
+    #         # Forward pass
+    #         outputs = model(features)
+    #         loss = criterion(outputs, labels)
+    #         _, predicted = torch.max(outputs.data, dim=1)
+    #         total += labels.size(0)
+    #         correct += (predicted == labels).sum().item()
+    #         # Backward and optimize
+    #         optimizer.zero_grad()
+    #         loss.backward()
+    #         optimizer.step()
 
-            if (i + 1) % batch_size == 10:
-                print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-                      .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
-    print('Training Accuracy of the model on the {} test features: {} %'.format(total, 100 * correct / total))
+    #         if (i + 1) % batch_size == 10:
+    #             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
+    #                   .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
+    # print('Training Accuracy of the model on the {} test features: {} %'.format(total, 100 * correct / total))
 
-    #
-    # Test the model
-    model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
-    with torch.no_grad():
-        correct = 0
-        total = 0
-        for features, labels in test_loader:
-            features = features.to(device, dtype=torch.float)
-            labels = labels.to(device)
-            outputs = model(features)
-            _, predicted = torch.max(outputs.data, dim=1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+    # #
+    # # Test the model
+    # model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
+    # with torch.no_grad():
+    #     correct = 0
+    #     total = 0
+    #     for features, labels in test_loader:
+    #         features = features.to(device, dtype=torch.float)
+    #         labels = labels.to(device)
+    #         outputs = model(features)
+    #         _, predicted = torch.max(outputs.data, dim=1)
+    #         total += labels.size(0)
+    #         correct += (predicted == labels).sum().item()
 
-        print('Test Accuracy of the model on the {} test features: {} %'.format(total, 100 * correct / total))
+    #     print('Test Accuracy of the model on the {} test features: {} %'.format(total, 100 * correct / total))
 
     # # Save the model checkpoint
     # torch.save(model.state_dict(), 'model.ckpt')
