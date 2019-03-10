@@ -14,11 +14,11 @@ class Button:
         lastclicked = False
         win = timedelta(seconds=1)
         step = timedelta(seconds=0.5)
-        timeStart = df_data['Time'].min()
-        timeEnd = df_data['Time'].max()
+        timeStart = df_data['ReaderTimestamp'].min()
+        timeEnd = df_data['ReaderTimestamp'].max()
         time = timeStart
         while time < timeEnd:
-            df_frame = df_data[(df_data['Time'] >= time) & (df_data['Time'] < time + win)]
+            df_frame = df_data[(df_data['ReaderTimestamp'] >= time) & (df_data['Time'] < time + win)]
             # 使用BitID的天线二数据
             ifexist = df_frame.loc[(df_frame['EPC']==self.EPC) & (df_frame['Antenna']==2)]
             time += step
@@ -35,7 +35,13 @@ class Button:
 
     def winstatusChange(self,df_data):
         ifexist = df_data.loc[(df_data['EPC']==self.EPC) & (df_data['Antenna']==2)]
-        if not len(ifexist) == 0:
+        if len(ifexist) >= 3:
             return True
         else:
             return False
+
+    def winstatusChangelist(self,xInput,start):
+        for i in range(start,len(xInput['EPC'])):
+            if xInput['EPC'][i] == self.EPC:
+                return True
+        return False
