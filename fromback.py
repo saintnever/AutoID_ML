@@ -21,9 +21,9 @@ index = 0
 # button = Button('E2000019390701021310458F')
 # new button
 button = Button('E2000019390700211300052E')
-def receivedata():
+def receivedata(host, port):
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    s.connect(('101.6.114.22',14))
+    s.connect((host,port))
     first_number = ''
     while True:
         data = s.recv(2048).decode()
