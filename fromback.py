@@ -101,6 +101,7 @@ def processdata(EPClist):
             resultlist.append(item.winstatusChangelist(xInput,index))
         # print(button.winstatusChangelist(xInput,index))
         timeEnd = timeEnd+step
+    return resultlist
 
 # receivedata()
 
