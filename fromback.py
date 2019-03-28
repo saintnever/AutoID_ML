@@ -20,11 +20,15 @@ xInput['ComputerTimestamp']=[]
 index = 0
 
 # 存放EPC
-EPClist=[]
+sensingEPClist=[]
+interactionEPClist=[]
 
 # 存放状态
-resultlist = []
+sensingResultlist = []
+interactionResultlist=[]
 
+# 存放interaction的上一个状态
+lastresultdic={}
 
 def receivedata():
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -71,13 +75,21 @@ def receivedata():
             break
         # print(xInput)
 
-def updateEPC(xEPClist):
-    global EPClist
-    EPClist = xEPClist
+def updateSensingEPC(xEPClist):
+    global sensingEPClist
+    sensingEPClist = xEPClist
 
-def getresult():
-    global resultlist
-    return resultlist
+def updateInteractionEPC(xEPClist):
+    global interactionEPClist
+    interactionEPClist = xEPClist
+
+def getSensingresult():
+    global sensingResultlist
+    return sensingResultlist
+
+def getInteractionresult():
+    global interactionResultlist
+    return interactionResultlist
 
 def lower_bound(array,first,last,value):
     while first < last:
@@ -90,12 +102,14 @@ def lower_bound(array,first,last,value):
 def processdata():
     global xInput
     global index
-    global EPClist
-    global resultlist
+    global sensingEPClist
+    global sensingResultlist
+    global interactionEPClist
+    global interactionResultlist
+    global lastresultdic
     timeEnd = timedelta(seconds = 0)
     win = timedelta(seconds=0.2)
     step = timedelta(seconds=0.1)
-    resultlist = []
     while True:
         if len(xInput['ReaderTimestamp']):
             while True:
@@ -109,14 +123,42 @@ def processdata():
             timeStart = timeEnd - win
             index  = lower_bound(xInput['ReaderTimestamp'],index,len(xInput['ReaderTimestamp']),timeStart)
             buttonlist = []
-            for item in EPClist:
+            # 对sensing tag的状态做处理
+            for item in sensingEPClist:
                 tempbutton = Button(item)
                 buttonlist.append(tempbutton)
-            resultlist = []
+            sensingResultlist = []
             for item in buttonlist:
-                resultlist.append(item.winstatusChangelist(xInput,index))
+                sensingResultlist.append(item.winstatusChangelist(xInput,index))
+            # 对interaction tag的状态做处理
+            buttonlist = []
+            # 对interaction tag的状态做处理
+            for item in interactionEPClist:
+                tempbutton = Button(item)
+                buttonlist.append(tempbutton)
+            tempresultdic = {}
+            for item in buttonlist:
+                status = item.winstatusChangelist(xInput,index)
+                tempresult[item] = status
+                # 如果是新增进来的标签
+                if not item in lastresultdic:
+                    # 那么只考虑短路开关
+                    if not status:
+                        # true代表被按下
+                        interactionResultlist.append("true")
+                    else:
+                        interactionResultlist.append("false")
+                else:
+                    laststatus = lastresultdic[item]
+                    if not status:
+                        if not laststatus:
+                            interactionResultlist.append("false")
+                        else:
+                            interactionResultlist.append("true")
+                    else:
+                        interactionResultlist.append("false")
+            lastresultdic = tempresultdic                   
         timeEnd = timeEnd+step
-
 
 # receivedata()
 
