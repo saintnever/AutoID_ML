@@ -17,11 +17,12 @@ class detection:
     __interactionEPClist=[]
 
     # 存放结果 
-    __sensingResultlist = []
+    __sensingResultdic = {}
     __interactionResultlist=[]
 
     # 存放interaction的上一个状态
     __lastresultdic={}
+
 
     def __init__(self):
         self.__xInput['EPC']=[]
@@ -118,9 +119,10 @@ class detection:
                 for item in self.__sensingEPClist:
                     tempbutton = Button(item)
                     buttonlist.append(tempbutton)
-                self.__sensingResultlist = []
-                for item in buttonlist:
-                    self.__sensingResultlist.append(item.winstatusChangelist(self.__xInput,self.__index))
+                    self.__sensingResultdic[item] = tempbutton.winstatusChangelist(self.__xInput,self.__index)
+                # self.__sensingResultlist = []
+                # for item in buttonlist:
+                #     self.__sensingResultlist.append(item.winstatusChangelist(self.__xInput,self.__index))
                 # print(self.__sensingResultlist)
                 # 对interaction tag的状态做处理
                 buttonlist = []
@@ -153,14 +155,14 @@ class detection:
             timeEnd = timeEnd+step
 
 # example
-# d = detection()
-# t1 = threading.Thread(target=d.receivedata, args=())
-# t2 = threading.Thread(target=d.processdata, args=())
-# t1.start()
-# t2.start()
-# while True:
-#     EPClist = ['E2000019390700191300052D']
-#     d.updateSensingEPC(EPClist)
-#     result = d.getSensingresult()
-#     print(result)
-#     time.sleep(0.5)
+d = detection()
+t1 = threading.Thread(target=d.receivedata, args=())
+t2 = threading.Thread(target=d.processdata, args=())
+t1.start()
+t2.start()
+while True:
+    EPClist = ['E2000019390700191300052D']
+    d.updateSensingEPC(EPClist)
+    result = d.getSensingresult()
+    print(result)
+    time.sleep(0.5)
