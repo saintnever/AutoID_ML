@@ -29,51 +29,29 @@ interactionResultlist=[]
 
 # 存放interaction的上一个状态
 lastresultdic={}
+maxEPC = ''
+maxRSSI = ''
+rssiLowerBound = -300
 
-def receivedata():
-    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    s.connect(('101.6.114.22',14))
-    first_number = ''
+def updateEPC(rssi, epc):
+    global maxEPC
+    global maxRSSI
+    if rssi > maxRSSI:
+        maxRSSI = rssi
+        maxEPC = epc
+
+
+def resetEPC():
+    global maxEPC
+    global maxRSSI
     while True:
-        data = s.recv(2048).decode()
-        writelist = []
-        # print(data)
-        if data:
-            # 处理不完整的信息
-            data = first_number + data
-            first_number = ''
-            while not  data[-1:] == '\n':
-                first_number = data[-1:] + first_number
-                data =  data[:-1]
+        maxRSSI = rssiLowerBound 
+        maxEPC = ''
+        time.sleep(1)
 
-            datalist = re.split('[,;]', data)
-            i = 0
-            for item in datalist:
-                k = i % 9
-                global xInput
-                if item == '':
-                    continue
-                else:
-                    if k  ==  1:
-                        xInput['EPC'].append(item)
-                    elif k == 2:
-                        xInput['Antenna'].append(int(item))
-                    elif k == 3:
-                        xInput['Freq'].append(float(item))
-                    elif k == 4:
-                        xInput['ReaderTimestamp'].append(timedelta(seconds = (float(item)/1000)))
-                    elif k == 5:
-                        xInput['RSSI'].append(float(item))
-                    elif k == 6:
-                        xInput['Doppler'].append(float(item))
-                    elif k == 7:
-                        xInput['Phase'].append(float(item))
-                    elif k == 8:
-                        xInput['ComputerTimestamp'].append(timedelta(seconds = (float(item[:-1])/1000)))
-                    i += 1
-        else:
-            break
-        # print(xInput)
+def getTopTag():
+    global maxEPC
+    return maxEPC 
 
 def updateSensingEPC(xEPClist):
     global sensingEPClist
@@ -160,13 +138,68 @@ def processdata():
             lastresultdic = tempresultdic                   
         timeEnd = timeEnd+step
 
+def receivedata(host, port):
+    global maxEPC
+    global maxRSSI
+    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    # s.connect(('101.6.114.22',14))
+    s.connect((host, port))
+    resetThread = threading.Thread(target=resetEPC, args=())
+    resetThread.start()
+    first_number = ''
+    curEPC = ''
+    curRSSI = rssiLowerBound
+    while True:
+        data = s.recv(2048).decode()
+        writelist = []
+        # print(data)
+        if data:
+            # 处理不完整的信息
+            data = first_number + data
+            first_number = ''
+            while not  data[-1:] == '\n':
+                first_number = data[-1:] + first_number
+                data =  data[:-1]
+
+            datalist = re.split('[,;]', data)
+            i = 0
+            for item in datalist:
+                k = i % 9
+                global xInput
+                if item == '':
+                    continue
+                else:
+                    if k  ==  1:
+                        curEPC = item
+                        xInput['EPC'].append(item)
+                    elif k == 2:
+                        xInput['Antenna'].append(int(item))
+                    elif k == 3:
+                        xInput['Freq'].append(float(item))
+                    elif k == 4:
+                        xInput['ReaderTimestamp'].append(timedelta(seconds = (float(item)/1000)))
+                    elif k == 5:
+                        curRSSI = float(item)
+                        xInput['RSSI'].append(curRSSI)
+                    elif k == 6:
+                        xInput['Doppler'].append(float(item))
+                    elif k == 7:
+                        xInput['Phase'].append(float(item))
+                    elif k == 8:
+                        xInput['ComputerTimestamp'].append(timedelta(seconds = (float(item[:-1])/1000)))
+                    else:
+                        updateEPC(curRSSI, curEPC)
+                    i += 1
+        else:
+            break
+        # print(xInput)
+
 # receivedata()
 
 # receivedata
-t1 = threading.Thread(target=receivedata, args=())
+# t1 = threading.Thread(target=receivedata, args=())
 # processdata
-t2 = threading.Thread(target=processdata, args=())
-
+# t2 = threading.Thread(target=processdata, args=())
 # t1.start()
 # t2.start()
 # t1.join()

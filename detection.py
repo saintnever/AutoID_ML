@@ -17,11 +17,12 @@ class detection:
     __interactionEPClist=[]
 
     # 存放结果 
-    __sensingResultlist = []
+    __sensingResultdic = {}
     __interactionResultlist=[]
 
     # 存放interaction的上一个状态
     __lastresultdic={}
+
 
     def __init__(self):
         self.__xInput['EPC']=[]
@@ -104,13 +105,14 @@ class detection:
             return 'None' 
 
     def updateSensingEPC(self,xEPClist):
+        # print(xEPClist)
         self.__sensingEPClist = xEPClist
 
     def updateInteractionEPC(self,xEPClist):
         self.__interactionEPClist = xEPClist
 
     def getSensingresult(self):
-        return self.__sensingResultlist
+        return self.__sensingResultdic
 
     def getInteractionresult(self):
         return self.__interactionResultlist
@@ -135,24 +137,29 @@ class detection:
         step = timedelta(seconds=0.1)
         while True:
             if len(self.__xInput['ReaderTimestamp']):
-                while True:
-                    temp = max(self.__xInput['ReaderTimestamp'])
-                    # 考虑两个时间节点，一个是按照step走的timeEnd，还有一个是现在接收到的数据的最迟时间
-                    if  temp > timeEnd:
-                        timeEnd = temp
-                        break
-                    else:
-                        time.sleep(0.1)
+                # print("~~~~~")
+                # while True:
+                temp = max(self.__xInput['ReaderTimestamp'])
+                # 考虑两个时间节点，一个是按照step走的timeEnd，还有一个是现在接收到的数据的最迟时间
+                # if  temp > timeEnd:
+                #     timeEnd = temp
+                #     break
+                # else:
+                #     time.sleep(0.1)
+                timeEnd = temp
                 timeStart = timeEnd - win
                 self.__index  = self.lower_bound(self.__xInput['ReaderTimestamp'],self.__index,len(self.__xInput['ReaderTimestamp']),timeStart)
                 buttonlist = []
                 # 对sensing tag的状态做处理
+                # print("*****")
                 for item in self.__sensingEPClist:
                     tempbutton = Button(item)
                     buttonlist.append(tempbutton)
-                self.__sensingResultlist = []
-                for item in buttonlist:
-                    self.__sensingResultlist.append(item.winstatusChangelist(self.__xInput,self.__index))
+                    result = tempbutton.winstatusChangelist(self.__xInput,self.__index)
+                    self.__sensingResultdic[item] = result
+                # self.__sensingResultlist = []
+                # for item in buttonlist:
+                #     self.__sensingResultlist.append(item.winstatusChangelist(self.__xInput,self.__index))
                 # print(self.__sensingResultlist)
                 # 对interaction tag的状态做处理
                 buttonlist = []
