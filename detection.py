@@ -17,7 +17,7 @@ class detection:
     __interactionEPClist=[]
 
     # 存放结果 
-    __sensingResultdic = {}
+    __sensingResultlist = []
     __interactionResultlist=[]
 
     # 存放interaction的上一个状态
@@ -112,7 +112,7 @@ class detection:
         self.__interactionEPClist = xEPClist
 
     def getSensingresult(self):
-        return self.__sensingResultdic
+        return self.__sensingResultlist
 
     def getInteractionresult(self):
         return self.__interactionResultlist
@@ -139,14 +139,14 @@ class detection:
             if len(self.__xInput['ReaderTimestamp']):
                 # print("~~~~~")
                 # while True:
-                temp = max(self.__xInput['ReaderTimestamp'])
-                # 考虑两个时间节点，一个是按照step走的timeEnd，还有一个是现在接收到的数据的最迟时间
-                # if  temp > timeEnd:
-                #     timeEnd = temp
-                #     break
-                # else:
-                #     time.sleep(0.1)
-                timeEnd = temp
+                timeEnd = max(self.__xInput['ReaderTimestamp'])
+                # # 考虑两个时间节点，一个是按照step走的timeEnd，还有一个是现在接收到的数据的最迟时间
+                #     if  temp > timeEnd:
+                #         timeEnd = temp
+                #         break
+                #     else:
+                #         time.sleep(0.1)
+                    # timeEnd = temp
                 timeStart = timeEnd - win
                 self.__index  = self.lower_bound(self.__xInput['ReaderTimestamp'],self.__index,len(self.__xInput['ReaderTimestamp']),timeStart)
                 buttonlist = []
@@ -155,11 +155,12 @@ class detection:
                 for item in self.__sensingEPClist:
                     tempbutton = Button(item)
                     buttonlist.append(tempbutton)
-                    result = tempbutton.winstatusChangelist(self.__xInput,self.__index)
-                    self.__sensingResultdic[item] = result
-                # self.__sensingResultlist = []
-                # for item in buttonlist:
-                #     self.__sensingResultlist.append(item.winstatusChangelist(self.__xInput,self.__index))
+                    # result = tempbutton.winstatusChangelist(self.__xInput,self.__index)
+                    # print(result)
+                    # self.__sensingResultdic[item] = result
+                self.__sensingResultlist = []
+                for item in buttonlist:
+                    self.__sensingResultlist.append(item.winstatusChangelist(self.__xInput,self.__index))
                 # print(self.__sensingResultlist)
                 # 对interaction tag的状态做处理
                 buttonlist = []
