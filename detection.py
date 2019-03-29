@@ -32,12 +32,16 @@ class detection:
         self.__xInput['Doppler']=[]
         self.__xInput['Phase']=[]
         self.__xInput['ComputerTimestamp']=[]
+        self.maxRSSI = -300
+        self.maxEPC = ''
+        self.threshold = -100
 
-
-    def receivedata(self):
+    def receivedata(self, host, port):
         s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        s.connect(('101.6.114.22',14))
+        s.connect((host, port))
         first_number = ''
+        curRSSI = -300
+        curEPC = ''
         while True:
             data = s.recv(2048).decode()
             writelist = []
@@ -59,6 +63,7 @@ class detection:
                     else:
                         if k  ==  1:
                             self.__xInput['EPC'].append(item)
+                            curEPC = item
                         elif k == 2:
                             self.__xInput['Antenna'].append(int(item))
                         elif k == 3:
@@ -67,15 +72,36 @@ class detection:
                             self.__xInput['ReaderTimestamp'].append(timedelta(seconds = (float(item)/1000)))
                         elif k == 5:
                             self.__xInput['RSSI'].append(float(item))
+                            curRSSI = float(item)
                         elif k == 6:
                             self.__xInput['Doppler'].append(float(item))
                         elif k == 7:
                             self.__xInput['Phase'].append(float(item))
                         elif k == 8:
                             self.__xInput['ComputerTimestamp'].append(timedelta(seconds = (float(item[:-1])/1000)))
+                        else:
+                            self.updateEPC(curRSSI, curEPC)
                         i += 1
             else:
                 break
+
+    def updateEPC(self, rssi, epc):
+        if rssi > self.maxRSSI:
+            self.maxRSSI = rssi
+            self.maxEPC = epc
+
+    def resetEPC(self):
+        while True:
+            self.maxRSSI = -300 
+            self.maxEPC = ''
+            time.sleep(1)
+
+    def getTopTag(self):
+        if self.maxRSSI > self.threshold:
+            print('EPC info' +str(self.maxRSSI) +self.maxEPC)
+            return self.maxEPC 
+        else:
+            return 'None' 
 
     def updateSensingEPC(self,xEPClist):
         self.__sensingEPClist = xEPClist
@@ -96,6 +122,12 @@ class detection:
             else: 
                 last = mid
         return first
+
+    def resetEPC(self):
+        while True:
+            self.maxRSSI = -300 
+            self.maxEPC = ''
+            time.sleep(1)
 
     def processdata(self):
         timeEnd = timedelta(seconds = 0)
@@ -153,14 +185,16 @@ class detection:
             timeEnd = timeEnd+step
 
 # example
-# d = detection()
-# t1 = threading.Thread(target=d.receivedata, args=())
-# t2 = threading.Thread(target=d.processdata, args=())
-# t1.start()
-# t2.start()
-# while True:
-#     EPClist = ['E2000019390700191300052D']
-#     d.updateSensingEPC(EPClist)
-#     result = d.getSensingresult()
-#     print(result)
-#     time.sleep(0.5)
+
+if __name__ == '__main__':
+    d = detection()
+    t1 = threading.Thread(target=d.receivedata, args=('101.6.114.22', 14))
+    t2 = threading.Thread(target=d.processdata, args=())
+    t1.start()
+    t2.start()
+    while True:
+        EPClist = ['E2000019390700191300052D']
+        d.updateSensingEPC(EPClist)
+        result = d.getSensingresult()
+        print(result)
+        time.sleep(0.5)
