@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from button_bitid import Button
 import csv
+from collections import deque
 
 class detection:
     __xInput = {}
@@ -36,6 +37,76 @@ class detection:
         self.maxRSSI = -300
         self.maxEPC = ''
         self.threshold = -100
+        self.epc_queue = deque()
+        self.readerTimestamp_queue = deque()
+
+    def detect_status(self, host, port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        first_number = ''
+        curRSSI = -300
+        curEPC = ''
+        while True:
+            data = s.recv(2048).decode()
+            writelist = []
+            # print(data)
+            if data:
+                # 处理不完整的信息
+                data = first_number + data
+                first_number = ''
+                while not data[-1:] == '\n':
+                    first_number = data[-1:] + first_number
+                    data = data[:-1]
+
+                datalist = re.split('[,;]', data)
+                # print(datalist)
+                i = 0
+                start_time = 0
+                pepc = 0
+                for item in datalist:
+                    k = i % 9
+                    if item == '':
+                        continue
+                    else:
+                        if k == 1:
+                            self.__xInput['EPC'].append(item)
+                            self.epc_queue.append(item)
+                            curEPC = item
+                        elif k == 2:
+                            self.__xInput['Antenna'].append(int(item))
+                        elif k == 3:
+                            self.__xInput['Freq'].append(float(item))
+                        elif k == 4:
+                            # ctime = timedelta(seconds=(float(item) / 1000))
+                            ctime = float(item)
+                            self.__sensingResultlist = []
+                            self.__xInput['ReaderTimestamp'].append(ctime)
+                            self.readerTimestamp_queue.append(ctime)
+                            # pop all items outside the sliding window
+                            while len(self.readerTimestamp_queue) > 0:
+                                ptime = self.readerTimestamp_queue.popleft()
+                                if ctime - ptime > 200:
+                                    self.epc_queue.popleft()
+                                else:
+                                    self.readerTimestamp_queue.appendleft(ptime)
+                                    break
+                            # print(list(self.readerTimestamp_queue), list(self.epc_queue))
+                            for epc in self.__sensingEPClist:
+                                self.__sensingResultlist.append(bool(self.epc_queue.count(epc)))
+                        elif k == 5:
+                            self.__xInput['RSSI'].append(float(item))
+                            curRSSI = float(item)
+                        elif k == 6:
+                            self.__xInput['Doppler'].append(float(item))
+                        elif k == 7:
+                            self.__xInput['Phase'].append(float(item))
+                        elif k == 8:
+                            self.__xInput['ComputerTimestamp'].append(timedelta(seconds=(float(item[:-1]) / 1000)))
+                        else:
+                            self.updateEPC(curRSSI, curEPC)
+                        i += 1
+            else:
+                break
 
     def receivedata(self, host, port):
         s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -196,13 +267,13 @@ class detection:
 
 if __name__ == '__main__':
     d = detection()
-    t1 = threading.Thread(target=d.receivedata, args=('101.6.114.22', 14))
-    t2 = threading.Thread(target=d.processdata, args=())
+    t1 = threading.Thread(target=d.detect_status, args=('101.6.114.22', 14))
+    # t2 = threading.Thread(target=d.processdata, args=())
     t1.start()
-    t2.start()
+    # t2.start()
     while True:
-        EPClist = ['E2000019390700191300052D']
+        EPClist = ['E2000019390700191300052D','E20000193907001913100535']
         d.updateSensingEPC(EPClist)
         result = d.getSensingresult()
         print(result)
-        time.sleep(0.5)
+        time.sleep(0.1)
