@@ -8,6 +8,11 @@ from button_bitid import Button
 import csv
 from collections import deque
 
+# Used when embedded in autoid server
+import sys
+sys.path.append('../')
+
+
 class detection:
     __xInput = {}
     __index = 0
@@ -44,7 +49,7 @@ class detection:
         self.epc_queue = deque()
         self.readerTimestamp_queue = deque()
 
-    def detect_status(self, host, port,event,eventlist):
+    def detect_status(self, host, port,event,eventlist, dbHandler=None):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((host, port))
         first_number = ''
@@ -68,6 +73,7 @@ class detection:
                     i = 0
                     start_time = 0
                     pepc = 0
+                    curRecord = {}
                     for item in datalist:
                         k = i % 9
                         if item == '':
@@ -76,16 +82,19 @@ class detection:
                             if k == 1:
                                 self.__xInput['EPC'].append(item)
                                 self.epc_queue.append(item)
+                                curRecord['EPC'] = item
                                 curEPC = item
                             elif k == 2:
                                 self.__xInput['Antenna'].append(int(item))
+                                curRecord['Antenna'] = int(item) 
                             elif k == 3:
                                 self.__xInput['Freq'].append(float(item))
+                                curRecord['Freq'] = float(item)
                             elif k == 4:
-                                # ctime = timedelta(seconds=(float(item) / 1000))
                                 ctime = float(item)
                                 self.__sensingResultlist = []
                                 self.__xInput['ReaderTimestamp'].append(ctime)
+                                curRecord['ReaderTimestamp'] = ctime 
                                 self.readerTimestamp_queue.append(ctime)
                                 # pop all items outside the sliding window
                                 while len(self.readerTimestamp_queue) > 0:
@@ -95,16 +104,12 @@ class detection:
                                     else:
                                         self.readerTimestamp_queue.appendleft(ptime)
                                         break
-                                # print(list(self.readerTimestamp_queue), list(self.epc_queue))
                                 for epc in self.__sensingEPClist:
                                     self.__sensingResultlist.append(bool(self.epc_queue.count(epc)))
                                 self.__lastresultlist = self.__interactionResultlist
                                 self.__interactionResultlist = []
                                 for epc in self.__interactionEPClist:
                                     self.__interactionResultlist.append(bool(self.epc_queue.count(epc)))
-                                # if len(self.__interactionResultlist) and len(self.__lastresultlist):
-                                #     if not self.__interactionResultlist[0] == self.__lastresultlist[0]:
-                                #         print(self.__interactionResultlist,self.__lastresultlist)
                                 im = 0
                                 self.__clickResultlist = []
                                 for epc in self.__interactionEPClist:
@@ -117,23 +122,27 @@ class detection:
                                     else:
                                         self.__clickResultdic[epc] = "False"
                                     im += 1
-                                # for item in self.__clickResultdic.values():
-                                #     if item  == "True":
-                                #         upevent.set()
-                                #         print(self.__clickResultdic)
-                                # upevent.set()
 
                             elif k == 5:
                                 self.__xInput['RSSI'].append(float(item))
                                 curRSSI = float(item)
+                                curRecord['RSSI'] = curRSSI 
                             elif k == 6:
                                 self.__xInput['Doppler'].append(float(item))
+                                curRecord['Doppler'] = float(item) 
                             elif k == 7:
                                 self.__xInput['Phase'].append(float(item))
+                                curRecord['Phase'] = float(item)
                             elif k == 8:
-                                self.__xInput['ComputerTimestamp'].append(timedelta(seconds=(float(item[:-1]) / 1000)))
+                                ctStamp = timedelta(seconds=(float(item[:-1]) / 1000))
+                                self.__xInput['ComputerTimestamp'].append(ctStamp)
+                                curRecord['ComputerTimestamp'] = str(ctStamp) 
                             else:
                                 self.updateEPC(curRSSI, curEPC)
+                                if dbHandler is not None and curRecord != {}:
+                                    print(curRecord)
+                                    dbHandler.saveRawData(curRecord)
+                                    curRecord = {}
                             i += 1
                 else:
                     break
@@ -219,17 +228,6 @@ class detection:
         return self.__sensingResultlist
 
     def getInteractionresult(self):
-        # length = len(self.__interactionEPClist)
-        # while not (len(self.__interactionResultlist) == length):
-        #     pass
-        # return self.__interactionResultlist
-        # while not self.__interactionflag:
-            # i = 1
-        # if self.__clickResultlist[0]  == "True":
-        #     print(self.__clickResultlist)
-        # print(self.__clickResultlist)
-        # if self.__interactionflag:
-        #     print("you can get data from me")
         return self.__clickResultdic
 
     def lower_bound(self,array,first,last,value):
@@ -245,8 +243,8 @@ class detection:
             self.maxRSSI = -300 
             self.maxEPC = ''
             time.sleep(1)
-# example
 
+# example
 if __name__ == '__main__':
     r_event = threading.Event()
     up_event = threading.Event()
