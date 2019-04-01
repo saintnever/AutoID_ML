@@ -7,6 +7,9 @@ import pandas as pd
 from button_bitid import Button
 import csv
 from collections import deque
+import soco
+import yeelight
+from netifaces import interfaces, AF_INET, ifaddresses
 
 # Used when embedded in autoid server
 import sys
@@ -23,7 +26,7 @@ class detection:
     __interactionEPClist=[]
 
     # 存放结果 
-    __sensingResultlist = []
+    __sensingResultdic = {}
     __interactionResultlist=[]
     __clickResultdic={}
     __interactionflag = False
@@ -92,7 +95,6 @@ class detection:
                                 curRecord['Freq'] = float(item)
                             elif k == 4:
                                 ctime = float(item)
-                                self.__sensingResultlist = []
                                 self.__xInput['ReaderTimestamp'].append(ctime)
                                 curRecord['ReaderTimestamp'] = ctime 
                                 self.readerTimestamp_queue.append(ctime)
@@ -105,22 +107,24 @@ class detection:
                                         self.readerTimestamp_queue.appendleft(ptime)
                                         break
                                 for epc in self.__sensingEPClist:
-                                    self.__sensingResultlist.append(bool(self.epc_queue.count(epc)))
+                                    self.__sensingResultdic[epc] = bool(self.epc_queue.count(epc))
                                 self.__lastresultlist = self.__interactionResultlist
                                 self.__interactionResultlist = []
                                 for epc in self.__interactionEPClist:
                                     self.__interactionResultlist.append(bool(self.epc_queue.count(epc)))
                                 im = 0
-                                self.__clickResultlist = []
+                                # print(self.__interactionResultlist)
+                                # self.__clickResultlist = []
                                 for epc in self.__interactionEPClist:
                                     if self.__interactionResultlist[im]:
                                         if not self.__lastresultlist[im]:
                                             eventlist[im].set()
-                                            self.__clickResultdic[epc] = "True"
-                                        else:
-                                            self.__clickResultdic[epc] = "False"
-                                    else:
-                                        self.__clickResultdic[epc] = "False"
+                                            print("true")
+                                    #         self.__clickResultdic[epc] = "True"
+                                    #     else:
+                                    #         self.__clickResultdic[epc] = "False"
+                                    # else:
+                                    #     self.__clickResultdic[epc] = "False"
                                     im += 1
 
                             elif k == 5:
@@ -223,7 +227,7 @@ class detection:
         self.__interactionEPClist = xEPClist
 
     def getSensingresult(self):
-        return self.__sensingResultlist
+        return self.__sensingResultdic
 
     def getInteractionresult(self):
         return self.__clickResultdic
@@ -244,8 +248,18 @@ class detection:
 
 # example
 if __name__ == '__main__':
+
+    # bulb and sonos init
+    sonos = list(soco.discover(timeout=10))[0]
+    muteFlag = False
+    bulb = yeelight.Bulb(yeelight.discover_bulbs(timeout=10)[0].get('ip'))
+
+    # phone status
+    phonestatus = False
+    phoneEPC = 'E20000193907010113104906'
+
+    sensingEPClist = ['E20000193907010113104906','E2000019390700191300052D','E2000019190B011910105997']
     r_event = threading.Event()
-    up_event = threading.Event()
     EPClist = ['E2000019390700211300052E']
     # 创建一个eventlist
     length = len(EPClist)
@@ -256,19 +270,46 @@ if __name__ == '__main__':
     try:
         d = detection()
         t1 = threading.Thread(target=d.detect_status, args=('101.6.114.22',14,r_event,eventlist,))
-        # t2 = threading.Thread(target=d.processdata, args=())
         t1.start()
         r_event.set()
-        # t2.start()
         iiii = 0
+
+        print(sonos)
+        if sonos:
+            sonos.play_mode = 'REPEAT_ONE'
+            sonos.play_uri('http://img.tukuppt.com/newpreview_music/09/01/52/5c89f044e48f61497.mp3')
+            sonos.volumn = 6
+        print(bulb)
+        if bulb:
+            bulb.toggle()
+
+        print("start!!!!")
         while True:
-            # EPClist = ['E2000019390700191300052D','E20000193907001913100535']
-            # d.updateSensingEPC(EPClist)
+            # 获取phone的状态
+            d.updateSensingEPC(sensingEPClist)
+            sensingresult = d.getSensingresult()
+            if sensingresult:
+                if phoneEPC in sensingresult.keys():
+                    if sensingresult[phoneEPC] == True:
+                        phonestatus = True
+                    else:
+                        phonestatus = False
+                else:
+                    phonestatus = False
+            else:
+                phonestatus = False
+            # press event
             d.updateInteractionEPC(EPClist)
-            # result = d.getSensingresult()
             for event in eventlist:
                 if event.is_set():
                     # 说明此时有点击事件
+                    if phonestatus:
+                        print("sonos.mute:",sonos.mute)
+                        muteFlag = ~muteFlag
+                        sonos.mute = muteFlag
+                    else:
+                        print("bulb lighted")
+                        bulb.toggle()
                     print("true",iiii)
                     event.clear()
                     iiii += 1
