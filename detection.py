@@ -21,7 +21,7 @@ class detection:
     __interactionEPClist=[]
 
     # 存放结果 
-    __sensingResultlist = []
+    __sensingResultdic = {}
     __interactionResultlist=[]
     __clickResultdic={}
     __interactionflag = False
@@ -87,7 +87,6 @@ class detection:
                             elif k == 4:
                                 # ctime = timedelta(seconds=(float(item) / 1000))
                                 ctime = float(item)
-                                self.__sensingResultlist = []
                                 self.__xInput['ReaderTimestamp'].append(ctime)
                                 self.readerTimestamp_queue.append(ctime)
                                 # pop all items outside the sliding window
@@ -100,7 +99,7 @@ class detection:
                                         break
                                 # print(list(self.readerTimestamp_queue), list(self.epc_queue))
                                 for epc in self.__sensingEPClist:
-                                    self.__sensingResultlist.append(bool(self.epc_queue.count(epc)))
+                                    self.__sensingResultdic[epc] = bool(self.epc_queue.count(epc))
                                 self.__lastresultlist = self.__interactionResultlist
                                 self.__interactionResultlist = []
                                 for epc in self.__interactionEPClist:
@@ -221,7 +220,7 @@ class detection:
         self.__interactionEPClist = xEPClist
 
     def getSensingresult(self):
-        return self.__sensingResultlist
+        return self.__sensingResultdic
 
     def getInteractionresult(self):
         # length = len(self.__interactionEPClist)
@@ -294,9 +293,8 @@ if __name__ == '__main__':
             d.updateSensingEPC(sensingEPClist)
             sensingresult = d.getSensingresult()
             if sensingresult:
-                if phoneEPC in sensingEPClist:
-                    myindex = sensingEPClist.index(phoneEPC)
-                    if sensingresult[myindex] == True:
+                if phoneEPC in sensingresult.keys():
+                    if sensingresult[phoneEPC] == True:
                         phonestatus = True
                     else:
                         phonestatus = False
