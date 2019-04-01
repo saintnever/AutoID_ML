@@ -140,7 +140,6 @@ class detection:
                             else:
                                 self.updateEPC(curRSSI, curEPC)
                                 if dbHandler is not None and curRecord != {}:
-                                    print(curRecord)
                                     dbHandler.saveRawData(curRecord)
                                     curRecord = {}
                             i += 1
@@ -212,7 +211,6 @@ class detection:
 
     def getTopTag(self):
         if self.maxRSSI > self.threshold:
-            print('EPC info' +str(self.maxRSSI) +self.maxEPC)
             return self.maxEPC 
         else:
             return 'None' 
