@@ -8,6 +8,7 @@ from button_bitid import Button
 import csv
 from collections import deque
 import soco
+import copy
 import yeelight
 from netifaces import interfaces, AF_INET, ifaddresses
 
@@ -51,6 +52,8 @@ class detection:
         self.threshold = -100
         self.epc_queue = deque()
         self.readerTimestamp_queue = deque()
+        self.dbHandler = None
+        self.curRecord = {}
 
     def detect_status(self, host, port,event,eventlist, dbHandler=None):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,6 +61,8 @@ class detection:
         first_number = ''
         curRSSI = -300
         curEPC = ''
+        if dbHandler is not None:
+            self.dbHandler = dbHandler
         while True:
             if event.is_set():
                 data = s.recv(2048).decode()
@@ -76,7 +81,7 @@ class detection:
                     i = 0
                     start_time = 0
                     pepc = 0
-                    curRecord = {}
+                    self.curRecord = {}
                     for item in datalist:
                         k = i % 9
                         if item == '':
@@ -85,18 +90,18 @@ class detection:
                             if k == 1:
                                 self.__xInput['EPC'].append(item)
                                 self.epc_queue.append(item)
-                                curRecord['EPC'] = item
+                                self.curRecord['EPC'] = item
                                 curEPC = item
                             elif k == 2:
                                 self.__xInput['Antenna'].append(int(item))
-                                curRecord['Antenna'] = int(item) 
+                                self.curRecord['Antenna'] = int(item) 
                             elif k == 3:
                                 self.__xInput['Freq'].append(float(item))
-                                curRecord['Freq'] = float(item)
+                                self.curRecord['Freq'] = float(item)
                             elif k == 4:
                                 ctime = float(item)
                                 self.__xInput['ReaderTimestamp'].append(ctime)
-                                curRecord['ReaderTimestamp'] = ctime 
+                                self.curRecord['ReaderTimestamp'] = ctime 
                                 self.readerTimestamp_queue.append(ctime)
                                 # pop all items outside the sliding window
                                 while len(self.readerTimestamp_queue) > 0:
@@ -130,22 +135,22 @@ class detection:
                             elif k == 5:
                                 self.__xInput['RSSI'].append(float(item))
                                 curRSSI = float(item)
-                                curRecord['RSSI'] = curRSSI 
+                                self.curRecord['RSSI'] = curRSSI 
                             elif k == 6:
                                 self.__xInput['Doppler'].append(float(item))
-                                curRecord['Doppler'] = float(item) 
+                                self.curRecord['Doppler'] = float(item) 
                             elif k == 7:
                                 self.__xInput['Phase'].append(float(item))
-                                curRecord['Phase'] = float(item)
+                                self.curRecord['Phase'] = float(item)
                             elif k == 8:
                                 ctStamp = timedelta(seconds=(float(item[:-1]) / 1000))
                                 self.__xInput['ComputerTimestamp'].append(ctStamp)
-                                curRecord['ComputerTimestamp'] = str(ctStamp) 
+                                self.curRecord['ComputerTimestamp'] = str(ctStamp) 
                             else:
                                 self.updateEPC(curRSSI, curEPC)
-                                if dbHandler is not None and curRecord != {}:
-                                    dbHandler.saveRawData(curRecord)
-                                    curRecord = {}
+                                if self.dbHandler is not None and self.curRecord != {}:
+                                    self.dbHandler.saveRawData(self.curRecord)
+                                    self.curRecord = {}
                             i += 1
                 else:
                     break
@@ -227,6 +232,10 @@ class detection:
         self.__interactionEPClist = xEPClist
 
     def getSensingresult(self):
+        if self.dbHandler is not None:
+            result = copy.deepcopy(self.__sensingResultdic)
+            result['ReaderTimestamp'] = self.curRecord['ReaderTimestamp']
+            self.dbHandler.saveRecognized(result)
         return self.__sensingResultdic
 
     def getInteractionresult(self):
