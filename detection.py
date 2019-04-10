@@ -67,7 +67,6 @@ class detection:
             if event.is_set():
                 data = s.recv(2048).decode()
                 writelist = []
-                # print(data)
                 if data:
                     # 处理不完整的信息
                     data = first_number + data
@@ -77,7 +76,6 @@ class detection:
                         data = data[:-1]
 
                     datalist = re.split('[,;]', data)
-                    # print(datalist)
                     i = 0
                     start_time = 0
                     pepc = 0
@@ -102,6 +100,7 @@ class detection:
                                 ctime = float(item)
                                 self.__xInput['ReaderTimestamp'].append(ctime)
                                 self.curRecord['ReaderTimestamp'] = ctime 
+                                t = time.time()
                                 self.readerTimestamp_queue.append(ctime)
                                 # pop all items outside the sliding window
                                 while len(self.readerTimestamp_queue) > 0:
