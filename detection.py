@@ -32,7 +32,7 @@ class detection:
     __lastresultlist=[]
 
 
-    def __init__(self):
+     
         self.__xInput['EPC']=[]
         self.__xInput['Antenna'] = []
         self.__xInput['Freq']=[]
