@@ -43,15 +43,15 @@ if __name__ == '__main__':
             if sensingresult:
             # if list(sensingresult.values()).count(True) == 1:
                 nowFalse = ""
-                if sensingresult[sensingEPClist[0]] == tag[0]:
+                if sensingresult[sensingEPClist[0]] == tag[1]:
                     nowFalse += "1"
                 else:
                     nowFalse += "0"
-                if sensingresult[sensingEPClist[1]] == tag[0]:
+                if sensingresult[sensingEPClist[1]] == tag[1]:
                     nowFalse += "1"
                 else:
                     nowFalse += "0"
-                if sensingresult[sensingEPClist[2]] == tag[0]:
+                if sensingresult[sensingEPClist[2]] == tag[1]:
                     nowFalse += "1"
                 else:
                     nowFalse += "0"
