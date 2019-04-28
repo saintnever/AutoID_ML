@@ -38,7 +38,7 @@ class detection:
     __lastresultlist=[]
 
 
-     
+    def __init__(self):
         self.__xInput['EPC']=[]
         self.__xInput['Antenna'] = []
         self.__xInput['Freq']=[]
@@ -254,75 +254,75 @@ class detection:
             self.maxEPC = ''
             time.sleep(1)
 
-# example
-if __name__ == '__main__':
+# # example
+# if __name__ == '__main__':
 
-    # bulb and sonos init
-    sonos = list(soco.discover(timeout=10))[0]
-    muteFlag = False
-    bulb = yeelight.Bulb(yeelight.discover_bulbs(timeout=10)[0].get('ip'))
+#     # bulb and sonos init
+#     sonos = list(soco.discover(timeout=10))[0]
+#     muteFlag = False
+#     bulb = yeelight.Bulb(yeelight.discover_bulbs(timeout=10)[0].get('ip'))
 
-    # phone status
-    phonestatus = False
-    phoneEPC = 'E20000193907010113104906'
+#     # phone status
+#     phonestatus = False
+#     phoneEPC = 'E20000193907010113104906'
 
-    sensingEPClist = ['E20000193907010113104906','E2000019390700191300052D','E2000019190B011910105997']
-    r_event = threading.Event()
-    EPClist = ['E2000019390700211300052E']
-    # 创建一个eventlist
-    length = len(EPClist)
-    eventlist = []
-    for i in range(length):
-        tempevent =  threading.Event()
-        eventlist.append(tempevent)
-    try:
-        d = detection()
-        t1 = threading.Thread(target=d.detect_status, args=('101.6.114.22',14,r_event,eventlist,))
-        t1.start()
-        r_event.set()
-        iiii = 0
+#     sensingEPClist = ['E20000193907010113104906','E2000019390700191300052D','E2000019190B011910105997']
+#     r_event = threading.Event()
+#     EPClist = ['E2000019390700211300052E']
+#     # 创建一个eventlist
+#     length = len(EPClist)
+#     eventlist = []
+#     for i in range(length):
+#         tempevent =  threading.Event()
+#         eventlist.append(tempevent)
+#     try:
+#         d = detection()
+#         t1 = threading.Thread(target=d.detect_status, args=('101.6.114.22',14,r_event,eventlist,))
+#         t1.start()
+#         r_event.set()
+#         iiii = 0
 
-        print(sonos)
-        if sonos:
-            sonos.play_mode = 'REPEAT_ONE'
-            sonos.play_uri('http://img.tukuppt.com/newpreview_music/09/01/52/5c89f044e48f61497.mp3')
-            sonos.volumn = 6
-        print(bulb)
-        if bulb:
-            bulb.toggle()
+#         print(sonos)
+#         if sonos:
+#             sonos.play_mode = 'REPEAT_ONE'
+#             sonos.play_uri('http://img.tukuppt.com/newpreview_music/09/01/52/5c89f044e48f61497.mp3')
+#             sonos.volumn = 6
+#         print(bulb)
+#         if bulb:
+#             bulb.toggle()
 
-        print("start!!!!")
-        while True:
-            # 获取phone的状态
-            d.updateSensingEPC(sensingEPClist)
-            sensingresult = d.getSensingresult()
-            if sensingresult:
-                if phoneEPC in sensingresult.keys():
-                    if sensingresult[phoneEPC] == True:
-                        phonestatus = True
-                    else:
-                        phonestatus = False
-                else:
-                    phonestatus = False
-            else:
-                phonestatus = False
-            # press event
-            d.updateInteractionEPC(EPClist)
-            for event in eventlist:
-                if event.is_set():
-                    # 说明此时有点击事件
-                    if phonestatus:
-                        print("sonos.mute:",sonos.mute)
-                        muteFlag = ~muteFlag
-                        sonos.mute = muteFlag
-                    else:
-                        print("bulb lighted")
-                        bulb.toggle()
-                    print("true",iiii)
-                    event.clear()
-                    iiii += 1
-    except KeyboardInterrupt as e:
-        print ("Exiting...")
-    finally:
-        r_event.clear()
-        t1.join()
+#         print("start!!!!")
+#         while True:
+#             # 获取phone的状态
+#             d.updateSensingEPC(sensingEPClist)
+#             sensingresult = d.getSensingresult()
+#             if sensingresult:
+#                 if phoneEPC in sensingresult.keys():
+#                     if sensingresult[phoneEPC] == True:
+#                         phonestatus = True
+#                     else:
+#                         phonestatus = False
+#                 else:
+#                     phonestatus = False
+#             else:
+#                 phonestatus = False
+#             # press event
+#             d.updateInteractionEPC(EPClist)
+#             for event in eventlist:
+#                 if event.is_set():
+#                     # 说明此时有点击事件
+#                     if phonestatus:
+#                         print("sonos.mute:",sonos.mute)
+#                         muteFlag = ~muteFlag
+#                         sonos.mute = muteFlag
+#                     else:
+#                         print("bulb lighted")
+#                         bulb.toggle()
+#                     print("true",iiii)
+#                     event.clear()
+#                     iiii += 1
+#     except KeyboardInterrupt as e:
+#         print ("Exiting...")
+#     finally:
+#         r_event.clear()
+#         t1.join()
