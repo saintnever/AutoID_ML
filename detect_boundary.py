@@ -18,8 +18,8 @@ from netifaces import interfaces, AF_INET, ifaddresses
 if __name__ == '__main__':
     data = []
     # 开路和短路
-    sensingEPClist = ['E2000019190B0086102035F3','E2000019190B00301030086F']
-    # sensingEPClist = ['E2000019190B008910103834','E2000019190B0084102035F2']
+    # sensingEPClist = ['E2000019190B0086102035F3','E2000019190B00301030086F']
+    sensingEPClist = ['E2000019190B008910103834','E2000019190B0084102035F2']
     tag = [True,False]
     r_event = threading.Event()
     lasttime = 0
@@ -27,11 +27,11 @@ if __name__ == '__main__':
     try:
         d = detection()
         eventlist = []
-        t1 = threading.Thread(target=d.detect_status, args=('101.6.114.22',14,r_event,eventlist,))
+        t1 = threading.Thread(target=d.detect_status, args=('192.168.3.156',14,r_event,eventlist,))
         t1.start()
         r_event.set()
         last = 0
-        statuslist = ["10","01"]
+        statuslist = ["10","11","01"]
         laststatue_time = []
         slide_left = 0
         slide_right = 0
@@ -41,27 +41,52 @@ if __name__ == '__main__':
             if sensingresult:
             # if list(sensingresult.values()).count(True) == 1:
                 nowFalse = ""
-                if sensingresult[sensingEPClist[0]] == tag[1]:
+                if sensingresult[sensingEPClist[0]] == tag[0]:
                     nowFalse += "1"
                 else:
                     nowFalse += "0"
-                if sensingresult[sensingEPClist[1]] == tag[1]:
+                if sensingresult[sensingEPClist[1]] == tag[0]:
                     nowFalse += "1"
                 else:
                     nowFalse += "0"
                 nowtime = time.time()
-                if nowFalse == "01":
+                print(nowFalse)
+                if nowFalse in statuslist:
+                    index = statuslist.index(nowFalse)
                     if laststatue_time:
-                        if laststatue_time[0] == "10":
+                        if laststatue_time[0] < index:
                             if nowtime-laststatue_time[1]<1:
                                 slide_right += 1
-                    laststatue_time = [nowFalse,nowtime]
-                elif nowFalse == "10":
-                    if laststatue_time:
-                        if laststatue_time[0] == "01":
+                                print("right",slide_right)
+                                time.sleep(0.8)
+                        elif laststatue_time[0] > index:
                             if nowtime-laststatue_time[1]<1:
                                 slide_left += 1
-                    laststatue_time = [nowFalse,nowtime]
+                                print("left",slide_left)
+                                time.sleep(0.8)
+                    laststatue_time = [index,nowtime]
+                # if nowFalse == "01":
+                #     if laststatue_time:
+                #         if laststatue_time[0] == "10":
+                #             if nowtime-laststatue_time[1]<1:
+                #                 slide_right += 1
+                #                 print("right",slide_right)
+                #     laststatue_time = [nowFalse,nowtime]
+                # elif nowFalse == "10":
+                #     if laststatue_time:
+                #         if laststatue_time[0] == "01":
+                #             if nowtime-laststatue_time[1]<1:
+                #                 slide_left += 1
+                #                 print("left",slide_left)
+                #     laststatue_time = [nowFalse,nowtime]
+                # elif nowFalse == "11":
+                #     if laststatue_time:
+                #         if laststatue_time[0] == "01":
+                #             if nowtime-laststatue_time[1]<1:
+                #                 slide_left += 1
+                #                 print("left",slide_left)
+                #     laststatue_time = [nowFalse,nowtime]
+
                                   
     except KeyboardInterrupt as e:
         print("left",slide_left)
